@@ -1,0 +1,9 @@
+{
+  "name": "quizmaster-pro",
+  "version": "1.0.0",
+  "private": true,
+  "description": "QuizMaster Pro — Stripe Checkout inteqrasiyası ilə",
+  "dependencies": {
+    "stripe": "^16.0.0"
+  }
+}
