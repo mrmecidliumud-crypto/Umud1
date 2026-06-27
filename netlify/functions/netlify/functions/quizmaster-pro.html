@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuizMaster Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://js.stripe.com/v3/"></script>
+<style>
+/* ═══════════════════════════════════════════════
+   DESIGN TOKENS — Psixologiyaya əsaslanan palitra
+   Mavi = güvən, yaddaş, diqqət
+   Yaşıl = uğur, irəliləyiş
+   Sarı = diqqət, sual işarəsi
+   Tünd fon = diqqəti fokusda saxlayır (azaldılmış distraksiya)
+═══════════════════════════════════════════════ */
+:root {
+  --bg:        #0d1117;
+  --bg2:       #161b22;
+  --bg3:       #21262d;
+  --border:    #30363d;
+  --border2:   #484f58;
+  --blue:      #388bfd;
+  --blue-d:    #1f6feb;
+  --blue-glow: rgba(56,139,253,.18);
+  --green:     #3fb950;
+  --green-glow:rgba(63,185,80,.15);
+  --orange:    #d29922;
+  --red:       #f85149;
+  --purple:    #8957e5;
+  --text:      #e6edf3;
+  --text2:     #8b949e;
+  --text3:     #6e7681;
+  --white:     #ffffff;
+  --r:         10px;
+  --r2:        16px;
+  --shadow:    0 8px 32px rgba(0,0,0,.5);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Outfit',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+  line-height:1.6;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ══════════ NAV ══════════ */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  height:60px;
+  background:rgba(13,17,23,.92);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;
+}
+.logo{
+  font-size:1.15rem;font-weight:800;letter-spacing:-.5px;
+  color:var(--white);display:flex;align-items:center;gap:8px;
+}
+.logo-icon{
+  width:30px;height:30px;border-radius:8px;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  display:flex;align-items:center;justify-content:center;
+  font-size:.85rem;
+}
+.logo span{color:var(--blue)}
+.nav-r{display:flex;align-items:center;gap:6px}
+.nav-btn{
+  padding:7px 16px;border-radius:var(--r);border:none;
+  cursor:pointer;font-family:'Outfit',sans-serif;
+  font-size:.85rem;font-weight:500;
+  background:none;color:var(--text2);
+  transition:.15s;
+}
+.nav-btn:hover{color:var(--text);background:var(--bg3)}
+.nav-btn.primary{background:var(--blue);color:#fff;font-weight:600}
+.nav-btn.primary:hover{background:var(--blue-d)}
+.nav-avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:.8rem;cursor:pointer;border:2px solid var(--border2);
+}
+
+/* ══════════ SCREENS ══════════ */
+.screen{display:none;min-height:100vh;padding-top:60px}
+.screen.active{display:block}
+
+/* ══════════ HOME ══════════ */
+#home{
+  background:radial-gradient(ellipse 70% 50% at 60% -10%,rgba(56,139,253,.12),transparent),
+             radial-gradient(ellipse 50% 40% at 0% 80%,rgba(137,87,229,.08),transparent);
+}
+.hero{
+  max-width:1100px;margin:0 auto;
+  padding:80px 24px 60px;
+  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;
+}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(56,139,253,.1);border:1px solid rgba(56,139,253,.3);
+  border-radius:100px;padding:5px 14px;
+  font-size:.78rem;font-weight:600;color:var(--blue);
+  letter-spacing:.5px;text-transform:uppercase;margin-bottom:20px;
+}
+.hero h1{
+  font-size:clamp(2rem,4vw,3.4rem);font-weight:800;
+  line-height:1.15;margin-bottom:18px;
+  letter-spacing:-.5px;
+}
+.hero h1 .grad{
+  background:linear-gradient(90deg,var(--blue),var(--purple));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero-sub{color:var(--text2);font-size:1.05rem;line-height:1.7;margin-bottom:32px;max-width:440px}
+.hero-btns{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:11px 24px;border-radius:var(--r);border:none;
+  cursor:pointer;font-family:'Outfit',sans-serif;
+  font-weight:600;font-size:.92rem;transition:.15s;
+}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--blue);color:#fff;box-shadow:0 0 24px var(--blue-glow)}
+.btn-primary:hover{background:var(--blue-d)}
+.btn-ghost{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue)}
+.btn-green{background:var(--green);color:#0d1117}
+.btn-green:hover{filter:brightness(1.1)}
+.btn-red{background:var(--red);color:#fff}
+.btn-red:hover{filter:brightness(1.1)}
+.btn-sm{padding:7px 16px;font-size:.82rem}
+.btn-full{width:100%;justify-content:center}
+
+/* Hero visual */
+.hero-visual{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:24px;
+  box-shadow:var(--shadow);
+  position:relative;
+}
+.hero-visual::before{
+  content:'';position:absolute;inset:-1px;border-radius:var(--r2);
+  background:linear-gradient(135deg,rgba(56,139,253,.3),transparent,rgba(137,87,229,.2));
+  z-index:-1;
+}
+.mini-card{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r);padding:16px;margin-bottom:12px;
+}
+.mini-card:last-child{margin-bottom:0}
+.mc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.mc-tag{
+  font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+  padding:3px 8px;border-radius:4px;
+}
+.tag-math{background:rgba(56,139,253,.15);color:var(--blue)}
+.tag-sci{background:rgba(63,185,80,.15);color:var(--green)}
+.tag-hist{background:rgba(137,87,229,.15);color:var(--purple)}
+.tag-eng{background:rgba(210,153,34,.15);color:var(--orange)}
+.tag-code{background:rgba(248,81,73,.15);color:var(--red)}
+.mc-score{font-size:.82rem;font-weight:700;color:var(--green);font-family:'JetBrains Mono',monospace}
+.mc-title{font-size:.9rem;font-weight:600;margin-bottom:6px}
+.mc-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.mc-bar-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:2px}
+
+/* Stats row */
+.hero-stats{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
+  margin-top:40px;padding:24px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);
+}
+.stat-n{font-size:1.8rem;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--blue)}
+.stat-l{font-size:.78rem;color:var(--text2);margin-top:2px}
+
+/* ══════════ CATALOG ══════════ */
+#catalog{padding:32px 24px 60px}
+.catalog-inner{max-width:1100px;margin:0 auto}
+.section-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:24px;
+}
+.section-head h2{font-size:1.4rem;font-weight:700}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px}
+.chip{
+  padding:6px 14px;border-radius:100px;
+  border:1px solid var(--border);background:none;
+  color:var(--text2);font-size:.8rem;font-family:'Outfit',sans-serif;
+  cursor:pointer;transition:.15s;font-weight:500;
+}
+.chip:hover,.chip.on{border-color:var(--blue);color:var(--blue);background:var(--blue-glow)}
+.quiz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+
+/* Quiz card */
+.qcard{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:20px;cursor:pointer;
+  transition:.2s;position:relative;overflow:hidden;
+}
+.qcard::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--blue),var(--purple));
+  transform:scaleX(0);transform-origin:left;transition:.3s;
+}
+.qcard:hover{border-color:var(--blue-d);transform:translateY(-2px);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.qcard:hover::after{transform:scaleX(1)}
+.qcard-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.qcard-title{font-size:.98rem;font-weight:700;line-height:1.35;margin-bottom:6px}
+.qcard-desc{font-size:.8rem;color:var(--text2);line-height:1.5;margin-bottom:14px}
+.qcard-meta{display:flex;gap:12px;font-size:.75rem;color:var(--text3);margin-bottom:16px}
+.qcard-foot{display:flex;align-items:center;justify-content:space-between}
+.price{font-size:1rem;font-weight:700;font-family:'JetBrains Mono',monospace}
+.price.free{color:var(--green)}
+.price.paid{color:var(--blue)}
+
+/* Progress ring */
+.ring{position:relative;width:40px;height:40px;flex-shrink:0}
+.ring svg{transform:rotate(-90deg)}
+.ring-pct{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:.58rem;font-weight:700;color:var(--text2);
+  font-family:'JetBrains Mono',monospace;
+}
+
+/* ══════════ QUIZ PLAYER ══════════ */
+#quiz-player{padding:32px 24px 60px}
+.player-wrap{max-width:660px;margin:0 auto}
+.player-top{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;
+}
+.player-top h2{font-size:1.1rem;font-weight:700}
+.q-num{
+  font-family:'JetBrains Mono',monospace;font-size:.82rem;
+  color:var(--text2);background:var(--bg3);
+  padding:4px 10px;border-radius:6px;border:1px solid var(--border);
+}
+.prog-bar{height:4px;background:var(--border);border-radius:2px;margin-bottom:28px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--green));transition:.4s;border-radius:2px}
+.qcard-player{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:28px;margin-bottom:16px;
+}
+.q-text{font-size:1.05rem;font-weight:600;line-height:1.6;margin-bottom:24px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{
+  display:flex;align-items:center;gap:12px;
+  padding:13px 16px;border-radius:var(--r);
+  border:1px solid var(--border);background:var(--bg3);
+  cursor:pointer;font-size:.9rem;font-weight:500;transition:.15s;
+}
+.opt:hover{border-color:var(--blue);background:var(--blue-glow)}
+.opt.sel{border-color:var(--blue);background:var(--blue-glow)}
+.opt.ok{border-color:var(--green);background:var(--green-glow);color:var(--green)}
+.opt.no{border-color:var(--red);background:rgba(248,81,73,.1);color:var(--red)}
+.opt-key{
+  width:26px;height:26px;border-radius:6px;
+  border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.72rem;font-weight:700;flex-shrink:0;
+  font-family:'JetBrains Mono',monospace;
+}
+.expl{
+  background:rgba(56,139,253,.08);border:1px solid rgba(56,139,253,.25);
+  border-radius:var(--r);padding:14px 16px;
+  font-size:.85rem;line-height:1.6;margin-top:14px;display:none;
+}
+.player-nav{display:flex;justify-content:space-between;align-items:center}
+
+/* ══════════ RESULTS ══════════ */
+#results{
+  display:none;min-height:100vh;padding-top:60px;
+  align-items:center;justify-content:center;
+  background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(56,139,253,.06),transparent);
+}
+#results.active{display:flex;flex-direction:column}
+.results-inner{text-align:center;max-width:560px;width:100%;padding:40px 24px}
+.score-ring{
+  width:140px;height:140px;border-radius:50%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  margin:0 auto 28px;position:relative;
+}
+.score-ring svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.score-pct{font-size:2.4rem;font-weight:800;font-family:'JetBrains Mono',monospace;position:relative;z-index:1}
+.score-lbl{font-size:.72rem;color:var(--text2);position:relative;z-index:1}
+#results h2{font-size:1.6rem;font-weight:700;margin-bottom:8px}
+#results p{color:var(--text2);margin-bottom:28px}
+.r-stats{display:flex;gap:14px;justify-content:center;margin-bottom:32px;flex-wrap:wrap}
+.rstat{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r);padding:16px 22px;text-align:center;
+}
+.rstat-n{font-size:1.4rem;font-weight:700;font-family:'JetBrains Mono',monospace}
+.rstat-l{font-size:.72rem;color:var(--text2);margin-top:3px}
+.res-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+/* ══════════ AUTH ══════════ */
+#auth{
+  display:none;min-height:100vh;padding-top:60px;
+  align-items:center;justify-content:center;
+}
+#auth.active{display:flex}
+.auth-box{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:32px;
+  width:100%;max-width:400px;margin:20px;
+  box-shadow:var(--shadow);
+}
+.auth-logo{text-align:center;margin-bottom:24px}
+.auth-logo .logo-icon{width:44px;height:44px;border-radius:12px;font-size:1.2rem;margin:0 auto 10px}
+.auth-logo h2{font-size:1.2rem;font-weight:700}
+.auth-logo p{font-size:.82rem;color:var(--text2);margin-top:4px}
+.tab-row{display:flex;background:var(--bg3);border-radius:var(--r);padding:3px;margin-bottom:24px}
+.tab{
+  flex:1;padding:9px;border:none;background:none;
+  border-radius:8px;cursor:pointer;font-family:'Outfit',sans-serif;
+  font-size:.85rem;font-weight:600;color:var(--text2);transition:.15s;
+}
+.tab.on{background:var(--blue);color:#fff}
+.form-group{margin-bottom:14px}
+label{display:block;font-size:.78rem;font-weight:600;color:var(--text2);margin-bottom:5px;letter-spacing:.3px}
+input[type=text],input[type=email],input[type=password],
+input[type=number],input[type=tel],select,textarea{
+  width:100%;padding:10px 14px;border-radius:var(--r);
+  border:1px solid var(--border);background:var(--bg3);
+  color:var(--text);font-family:'Outfit',sans-serif;font-size:.9rem;
+  outline:none;transition:.2s;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-glow)}
+select option{background:var(--bg3)}
+textarea{resize:vertical;min-height:80px;line-height:1.5}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.auth-switch{
+  text-align:center;margin-top:16px;
+  font-size:.8rem;color:var(--text2);
+}
+.auth-switch a{color:var(--blue);cursor:pointer;text-decoration:none;font-weight:600}
+.divider{
+  display:flex;align-items:center;gap:10px;
+  color:var(--text3);font-size:.75rem;margin:16px 0;
+}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.aform{display:none}
+.aform.on{display:block}
+
+/* ══════════ PAYMENT (STRIPE) ══════════ */
+#payment{
+  display:none;min-height:100vh;padding-top:60px;
+  align-items:center;justify-content:center;
+}
+#payment.active{display:flex}
+.pay-wrap{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:32px;
+  width:100%;max-width:460px;margin:20px;
+  box-shadow:var(--shadow);
+}
+.pay-header{margin-bottom:24px}
+.pay-header h2{font-size:1.2rem;font-weight:700}
+.pay-header p{font-size:.82rem;color:var(--text2);margin-top:4px}
+.order-box{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r);padding:16px;margin-bottom:20px;
+}
+.order-row{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:.85rem;padding:4px 0;
+}
+.order-row.total{
+  font-weight:700;font-size:.95rem;
+  border-top:1px solid var(--border);margin-top:8px;padding-top:12px;
+}
+.pay-methods{display:flex;gap:8px;margin-bottom:20px}
+.pay-method{
+  flex:1;padding:10px;border-radius:var(--r);
+  border:2px solid var(--border);background:var(--bg3);
+  cursor:pointer;text-align:center;font-size:.8rem;color:var(--text2);
+  font-weight:600;transition:.15s;
+}
+.pay-method.on{border-color:var(--blue);color:var(--blue);background:var(--blue-glow)}
+/* Stripe Element container */
+#stripe-card-element{
+  padding:12px 14px;border-radius:var(--r);
+  border:1px solid var(--border);background:var(--bg3);
+  margin-bottom:14px;transition:.2s;
+}
+#stripe-card-element.focused{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-glow)}
+#stripe-error{
+  color:var(--red);font-size:.82rem;margin-bottom:12px;
+  display:none;padding:10px;background:rgba(248,81,73,.08);
+  border-radius:var(--r);border:1px solid rgba(248,81,73,.2);
+}
+.secure-note{
+  text-align:center;font-size:.75rem;color:var(--text3);
+  margin-top:14px;display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.secure-note span{color:var(--green)}
+
+/* ══════════ DASHBOARD ══════════ */
+#dashboard{padding:32px 24px 60px}
+.dash-inner{max-width:1080px;margin:0 auto}
+.dash-grid{display:grid;grid-template-columns:220px 1fr;gap:24px}
+.sidebar{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:20px;height:fit-content;
+}
+.sb-avatar{
+  width:54px;height:54px;border-radius:50%;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;font-weight:800;margin-bottom:10px;
+}
+.sb-name{font-weight:700;font-size:.95rem}
+.sb-email{font-size:.75rem;color:var(--text2);margin-bottom:18px}
+.sb-menu{list-style:none}
+.sb-menu li{margin-bottom:2px}
+.sb-menu a{
+  display:flex;align-items:center;gap:9px;padding:9px 10px;
+  border-radius:var(--r);text-decoration:none;
+  color:var(--text2);font-size:.85rem;font-weight:500;transition:.15s;
+}
+.sb-menu a:hover,.sb-menu a.on{background:var(--blue-glow);color:var(--blue)}
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.kpi{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:18px;
+}
+.kpi-n{font-size:1.7rem;font-weight:800;font-family:'JetBrains Mono',monospace;margin-bottom:4px}
+.kpi-l{font-size:.75rem;color:var(--text2)}
+.kpi-d{font-size:.72rem;color:var(--green);margin-top:4px}
+.table-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r2);overflow:hidden;
+}
+.table-head{
+  padding:16px 18px;border-bottom:1px solid var(--border);
+  font-weight:700;font-size:.88rem;display:flex;align-items:center;justify-content:space-between;
+}
+table{width:100%;border-collapse:collapse}
+th{
+  padding:11px 18px;text-align:left;
+  font-size:.73rem;font-weight:700;color:var(--text3);
+  border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.5px;
+}
+td{padding:13px 18px;font-size:.83rem;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.badge{
+  padding:3px 9px;border-radius:100px;
+  font-size:.7rem;font-weight:700;display:inline-block;
+}
+.b-pass{background:rgba(63,185,80,.15);color:var(--green)}
+.b-fail{background:rgba(248,81,73,.12);color:var(--red)}
+.b-pend{background:rgba(210,153,34,.15);color:var(--orange)}
+.b-paid{background:rgba(63,185,80,.12);color:var(--green)}
+
+/* ══════════ ADMIN ══════════ */
+#admin{padding:32px 24px 60px}
+.admin-inner{max-width:960px;margin:0 auto}
+.admin-tabs{
+  display:flex;gap:4px;background:var(--bg2);
+  border:1px solid var(--border);border-radius:var(--r2);
+  padding:4px;margin-bottom:24px;overflow-x:auto;
+}
+.atab{
+  flex:1;min-width:fit-content;padding:9px 14px;border:none;background:none;
+  border-radius:var(--r);font-family:'Outfit',sans-serif;
+  font-size:.82rem;font-weight:600;color:var(--text2);cursor:pointer;
+  transition:.15s;white-space:nowrap;
+}
+.atab.on{background:var(--blue);color:#fff}
+.apanel{display:none}
+.apanel.on{display:block}
+.form-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:24px;margin-bottom:16px;
+}
+.form-card h3{font-size:.95rem;font-weight:700;margin-bottom:16px;color:var(--text)}
+
+/* File upload */
+.file-drop{
+  border:2px dashed var(--border2);border-radius:var(--r);
+  padding:32px;text-align:center;cursor:pointer;
+  transition:.2s;position:relative;
+}
+.file-drop:hover,.file-drop.over{border-color:var(--blue);background:var(--blue-glow)}
+.file-drop input[type=file]{
+  position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;
+}
+.file-drop-icon{font-size:2rem;margin-bottom:8px}
+.file-drop-text{font-size:.85rem;color:var(--text2)}
+.file-drop-text span{color:var(--blue);font-weight:600}
+.file-list{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.file-item{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r);padding:10px 14px;font-size:.82rem;
+}
+.file-item-l{display:flex;align-items:center;gap:8px}
+.file-icon{font-size:1.1rem}
+.file-name{font-weight:500;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-size{color:var(--text3);font-size:.72rem;font-family:'JetBrains Mono',monospace}
+.del-btn{background:none;border:none;color:var(--red);cursor:pointer;font-size:1rem;padding:2px 6px;border-radius:4px;transition:.15s}
+.del-btn:hover{background:rgba(248,81,73,.1)}
+
+/* Question builder */
+.qb-list{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+.qb-item{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r);padding:16px;
+}
+.qb-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.qb-head span{font-weight:700;font-size:.85rem;color:var(--blue)}
+
+/* Settings panel */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.setting-item{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r);padding:16px;
+}
+.setting-item h4{font-size:.85rem;font-weight:700;margin-bottom:4px}
+.setting-item p{font-size:.75rem;color:var(--text2);margin-bottom:12px}
+.toggle{
+  display:flex;align-items:center;gap:8px;cursor:pointer;
+}
+.toggle-track{
+  width:36px;height:20px;border-radius:10px;background:var(--border2);
+  position:relative;transition:.2s;
+}
+.toggle.on .toggle-track{background:var(--blue)}
+.toggle-thumb{
+  width:16px;height:16px;border-radius:50%;background:#fff;
+  position:absolute;top:2px;left:2px;transition:.2s;
+}
+.toggle.on .toggle-thumb{transform:translateX(16px)}
+.toggle-lbl{font-size:.82rem;font-weight:600}
+
+/* Stripe settings */
+.stripe-setup{
+  background:rgba(56,139,253,.06);border:1px solid rgba(56,139,253,.2);
+  border-radius:var(--r);padding:16px;margin-bottom:16px;
+}
+.stripe-setup h4{font-size:.88rem;font-weight:700;margin-bottom:4px;color:var(--blue)}
+.stripe-setup p{font-size:.78rem;color:var(--text2);margin-bottom:12px;line-height:1.5}
+.stripe-key-status{
+  display:flex;align-items:center;gap:8px;
+  font-size:.8rem;padding:8px 12px;border-radius:6px;
+  background:var(--bg3);border:1px solid var(--border);margin-top:8px;
+}
+.stripe-key-status.ok{border-color:var(--green);background:var(--green-glow)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border2)}
+.dot.ok{background:var(--green)}
+
+/* ══════════ MODAL ══════════ */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);
+  z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;pointer-events:none;transition:.2s;backdrop-filter:blur(4px);
+}
+.overlay.on{opacity:1;pointer-events:all}
+.modal{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:28px;width:100%;max-width:400px;
+  transform:translateY(16px);transition:.2s;
+}
+.overlay.on .modal{transform:translateY(0)}
+.modal h3{font-size:1.1rem;font-weight:700;margin-bottom:6px}
+.modal p{font-size:.85rem;color:var(--text2);margin-bottom:20px;line-height:1.5}
+.modal-btns{display:flex;gap:10px}
+
+/* ══════════ TOAST ══════════ */
+#toast{
+  position:fixed;bottom:24px;right:24px;z-index:999;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r);padding:12px 18px;
+  font-size:.85rem;font-weight:500;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:var(--shadow);
+  transform:translateY(80px);opacity:0;transition:.3s;
+}
+#toast.on{transform:translateY(0);opacity:1}
+.t-icon{font-size:1rem}
+
+/* ══════════ LOADING ══════════ */
+.spinner{
+  display:inline-block;width:18px;height:18px;
+  border:2px solid rgba(255,255,255,.3);border-top-color:#fff;
+  border-radius:50%;animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pulse{animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+/* ══════════ EMPTY ══════════ */
+.empty{
+  text-align:center;padding:40px 20px;color:var(--text2);
+}
+.empty-icon{font-size:2.5rem;margin-bottom:10px;display:block}
+.empty p{font-size:.88rem;margin-bottom:14px}
+
+/* ══════════ RESPONSIVE ══════════ */
+@media(max-width:768px){
+  .hero{grid-template-columns:1fr;gap:32px;padding:40px 20px 32px}
+  .hero-visual{display:none}
+  .dash-grid{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .form-row{grid-template-columns:1fr}
+  .settings-grid{grid-template-columns:1fr}
+  .hero-stats{grid-template-columns:repeat(3,1fr)}
+  #catalog,#admin,#dashboard{padding:20px 16px 40px}
+}
+@media(max-width:480px){
+  .kpi-grid{grid-template-columns:1fr}
+  .hero-stats{grid-template-columns:1fr}
+  nav{padding:0 14px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ NAV ══════════════ -->
+<nav>
+  <div class="logo" onclick="show('home')" style="cursor:pointer">
+    <div class="logo-icon">⚡</div>
+    Quiz<span>Master</span>
+  </div>
+  <div class="nav-r" id="nav-r">
+    <button class="nav-btn" onclick="show('home')">Ana səhifə</button>
+    <button class="nav-btn" onclick="show('catalog')">Testlər</button>
+    <button class="nav-btn" id="nb-dash" style="display:none" onclick="show('dashboard')">Dashboard</button>
+    <button class="nav-btn" id="nb-admin" style="display:none" onclick="show('admin')">Admin</button>
+    <button class="nav-btn" id="nb-login" onclick="show('auth')">Giriş</button>
+    <button class="nav-btn primary" id="nb-signup" onclick="show('auth');swTab('signup')">Qeydiyyat</button>
+    <button class="nav-btn" id="nb-logout" style="display:none" onclick="doLogout()">Çıxış</button>
+    <div class="nav-avatar" id="nav-av" style="display:none" onclick="show('dashboard')">U</div>
+  </div>
+</nav>
+
+<!-- ══════════════ HOME ══════════════ -->
+<div id="home" class="screen active">
+  <section class="hero">
+    <div>
+      <div class="hero-eyebrow">✦ Öyrən · Məşq et · Uğur qazан</div>
+      <h1>Bilikini<br><span class="grad">sübut et</span></h1>
+      <p class="hero-sub">Ekspert müəllimlər tərəfindən hazırlanmış adaptiv testlər. İrəliləyişini izlə, sertifikat qazан və fərqini göstər.</p>
+      <div class="hero-btns">
+        <button class="btn btn-primary" onclick="show('catalog')">Testlərə bax →</button>
+        <button class="btn btn-ghost" onclick="show('auth');swTab('signup')">Pulsuz başla</button>
+      </div>
+      <div class="hero-stats">
+        <div><div class="stat-n">12K+</div><div class="stat-l">Tələbə</div></div>
+        <div><div class="stat-n">340+</div><div class="stat-l">Test</div></div>
+        <div><div class="stat-n">98%</div><div class="stat-l">Razılıq</div></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="mini-card">
+        <div class="mc-head">
+          <span class="mc-tag tag-math">Riyaziyyat</span>
+          <span class="mc-score">92%</span>
+        </div>
+        <div class="mc-title">Cəbr Əsasları</div>
+        <div class="mc-bar"><div class="mc-bar-fill" style="width:92%"></div></div>
+      </div>
+      <div class="mini-card">
+        <div class="mc-head">
+          <span class="mc-tag tag-sci">Elm</span>
+          <span class="mc-score">78%</span>
+        </div>
+        <div class="mc-title">İnsan Biologiyası</div>
+        <div class="mc-bar"><div class="mc-bar-fill" style="width:78%"></div></div>
+      </div>
+      <div class="mini-card">
+        <div class="mc-head">
+          <span class="mc-tag tag-code">Proqramlaşdırma</span>
+          <span class="mc-score">85%</span>
+        </div>
+        <div class="mc-title">Python Başlanğıc</div>
+        <div class="mc-bar"><div class="mc-bar-fill" style="width:85%"></div></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ══════════════ CATALOG ══════════════ -->
+<div id="catalog" class="screen">
+  <div class="catalog-inner">
+    <div class="section-head">
+      <h2>Bütün Testlər</h2>
+    </div>
+    <div class="filter-row" id="filter-row">
+      <button class="chip on" onclick="filterQ('all',this)">Hamısı</button>
+      <button class="chip" onclick="filterQ('Math',this)">Riyaziyyat</button>
+      <button class="chip" onclick="filterQ('Science',this)">Elm</button>
+      <button class="chip" onclick="filterQ('History',this)">Tarix</button>
+      <button class="chip" onclick="filterQ('English',this)">İngilis</button>
+      <button class="chip" onclick="filterQ('Coding',this)">Proqramlaşdırma</button>
+      <button class="chip" onclick="filterQ('free',this)">Pulsuz</button>
+    </div>
+    <div class="quiz-grid" id="quiz-grid"></div>
+  </div>
+</div>
+
+<!-- ══════════════ QUIZ PLAYER ══════════════ -->
+<div id="quiz-player" class="screen">
+  <div class="player-wrap">
+    <div class="player-top">
+      <h2 id="pl-title">Test</h2>
+      <span class="q-num" id="pl-num">1 / 5</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="pl-prog" style="width:0%"></div></div>
+    <div class="qcard-player">
+      <div class="q-text" id="q-text">Yüklənir…</div>
+      <div class="opts" id="opts"></div>
+      <div class="expl" id="expl"></div>
+    </div>
+    <!-- Quiz files (PDFs / images) -->
+    <div id="quiz-files-section" style="margin-bottom:16px;display:none">
+      <div class="table-card">
+        <div class="table-head">📎 Əlavə Materiallar</div>
+        <div id="quiz-files-list" style="padding:12px 16px"></div>
+      </div>
+    </div>
+    <div class="player-nav">
+      <button class="btn btn-ghost" onclick="show('catalog')">← Çıx</button>
+      <button class="btn btn-primary" id="next-btn" onclick="nextQ()">İrəli →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ RESULTS ══════════════ -->
+<div id="results" class="screen">
+  <div class="results-inner">
+    <div class="score-ring" id="score-ring">
+      <svg viewBox="0 0 140 140" width="140" height="140">
+        <circle cx="70" cy="70" r="60" fill="none" stroke="#30363d" stroke-width="8"/>
+        <circle id="score-arc" cx="70" cy="70" r="60" fill="none"
+          stroke="var(--blue)" stroke-width="8" stroke-linecap="round"
+          stroke-dasharray="377" stroke-dashoffset="377"/>
+      </svg>
+      <div class="score-pct" id="sc-pct">0%</div>
+      <div class="score-lbl">Bal</div>
+    </div>
+    <h2 id="sc-title">Əla!</h2>
+    <p id="sc-msg">Yaxşı nəticə göstərdiniz.</p>
+    <div class="r-stats">
+      <div class="rstat"><div class="rstat-n" id="sc-ok">0</div><div class="rstat-l">Düzgün</div></div>
+      <div class="rstat"><div class="rstat-n" id="sc-no">0</div><div class="rstat-l">Yanlış</div></div>
+      <div class="rstat"><div class="rstat-n" id="sc-t">0s</div><div class="rstat-l">Vaxt</div></div>
+    </div>
+    <div class="res-btns">
+      <button class="btn btn-ghost" onclick="show('catalog')">← Testlər</button>
+      <button class="btn btn-primary" onclick="retryQ()">Yenidən cəhd et</button>
+      <button class="btn btn-green" onclick="show('dashboard')">Dashboard-a bax</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ PAYMENT (STRIPE CHECKOUT) ══════════════ -->
+<div id="payment" class="screen">
+  <div class="pay-wrap">
+    <div class="pay-header">
+      <h2>🔐 Ödəniş</h2>
+      <p>Stripe Checkout ilə təhlükəsiz ödəniş</p>
+    </div>
+
+    <div class="order-box">
+      <div class="order-row"><span id="pay-title-lbl">Test</span><span id="pay-price-lbl">$0.00</span></div>
+      <div class="order-row total"><span>Cəmi</span><span id="pay-total-lbl">$0.00</span></div>
+    </div>
+
+    <div class="form-group">
+      <label>Email ünvanı (qəbz üçün)</label>
+      <input type="email" id="pay-email" placeholder="siz@example.com">
+    </div>
+
+    <div id="stripe-error"></div>
+
+    <button class="btn btn-primary btn-full" id="pay-btn" onclick="startStripeCheckout()">
+      Stripe ilə ödə →
+    </button>
+    <div class="secure-note">🔒 <span>256-bit SSL</span> · Stripe-ın öz təhlükəsiz səhifəsinə yönləndiriləcəksiniz</div>
+
+    <div style="text-align:center;margin-top:14px">
+      <button class="btn btn-ghost btn-sm" onclick="show('catalog')">← Ləğv et</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ AUTH ══════════════ -->
+<div id="auth" class="screen">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="logo-icon">⚡</div>
+      <h2>Xoş Gəldiniz</h2>
+      <p>Hesabınıza daxil olun və ya yaradın</p>
+    </div>
+    <div class="tab-row">
+      <button class="tab on" id="tab-login" onclick="swTab('login')">Giriş</button>
+      <button class="tab" id="tab-signup" onclick="swTab('signup')">Qeydiyyat</button>
+    </div>
+
+    <!-- Login -->
+    <div class="aform on" id="form-login">
+      <div class="form-group"><label>Email</label><input type="email" id="l-email" placeholder="siz@example.com"></div>
+      <div class="form-group"><label>Şifrə</label><input type="password" id="l-pass" placeholder="••••••••"></div>
+      <button class="btn btn-primary btn-full" onclick="doLogin()">Giriş et</button>
+      <div class="auth-switch">Hesabınız yoxdur? <a onclick="swTab('signup')">Qeydiyyat</a></div>
+    </div>
+
+    <!-- Signup -->
+    <div class="aform" id="form-signup">
+      <div class="form-row">
+        <div class="form-group"><label>Ad</label><input type="text" id="s-first" placeholder="Aynur"></div>
+        <div class="form-group"><label>Soyad</label><input type="text" id="s-last" placeholder="Həsənova"></div>
+      </div>
+      <div class="form-group"><label>Email</label><input type="email" id="s-email" placeholder="siz@example.com"></div>
+      <div class="form-group"><label>Şifrə (min 6)</label><input type="password" id="s-pass" placeholder="••••••••"></div>
+      <div class="form-group">
+        <label>Hesab növü</label>
+        <select id="s-role">
+          <option value="student">Tələbə</option>
+          <option value="teacher">Müəllim / Admin</option>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="doSignup()">Hesab yarat</button>
+      <div class="auth-switch">Hesabınız var? <a onclick="swTab('login')">Giriş et</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ DASHBOARD ══════════════ -->
+<div id="dashboard" class="screen">
+  <div class="dash-inner">
+    <div class="dash-grid">
+      <aside class="sidebar">
+        <div class="sb-avatar" id="sb-av">U</div>
+        <div class="sb-name" id="sb-name">İstifadəçi</div>
+        <div class="sb-email" id="sb-email">-</div>
+        <ul class="sb-menu">
+          <li><a href="#" class="on" onclick="return false">📊 Ümumi baxış</a></li>
+          <li><a href="#" onclick="show('catalog');return false">📚 Testlər</a></li>
+          <li><a href="#" onclick="return false">🏆 Sertifikatlar</a></li>
+          <li><a href="#" onclick="return false">💳 Ödənişlər</a></li>
+          <li><a href="#" onclick="return false">⚙️ Parametrlər</a></li>
+        </ul>
+      </aside>
+      <div>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-n" id="kpi-t">0</div><div class="kpi-l">Test sayı</div><div class="kpi-d">↑ bu ay</div></div>
+          <div class="kpi"><div class="kpi-n" id="kpi-a">0%</div><div class="kpi-l">Ort. bal</div><div class="kpi-d">↑ yaxşılaşır</div></div>
+          <div class="kpi"><div class="kpi-n" id="kpi-c">0</div><div class="kpi-l">Sertifikat</div><div class="kpi-d">qazanılmış</div></div>
+        </div>
+        <div class="table-card">
+          <div class="table-head">Son Fəaliyyət</div>
+          <table>
+            <thead><tr><th>Test</th><th>Bal</th><th>Tarix</th><th>Status</th></tr></thead>
+            <tbody id="act-body">
+              <tr><td colspan="4">
+                <div class="empty">
+                  <span class="empty-icon">📝</span>
+                  <p>Hələ heç bir test çözülməyib.</p>
+                  <button class="btn btn-primary btn-sm" onclick="show('catalog')">Test seç →</button>
+                </div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ ADMIN ══════════════ -->
+<div id="admin" class="screen">
+  <div class="admin-inner">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h2 style="font-size:1.3rem;font-weight:700">Admin Panel 👑</h2>
+    </div>
+    <div class="admin-tabs">
+      <button class="atab on" onclick="aTab('create',this)">➕ Test yarat</button>
+      <button class="atab" onclick="aTab('manage',this)">📋 Testlər</button>
+      <button class="atab" onclick="aTab('students',this)">👥 Tələbələr</button>
+      <button class="atab" onclick="aTab('revenue',this)">💰 Gəlir</button>
+      <button class="atab" onclick="aTab('settings',this)">⚙️ Parametrlər</button>
+    </div>
+
+    <!-- ── CREATE ── -->
+    <div class="apanel on" id="panel-create">
+      <div class="form-card">
+        <h3>Test məlumatları</h3>
+        <div class="form-group"><label>Test başlığı</label><input type="text" id="n-title" placeholder="məs. Cəbr Əsasları"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Kateqoriya</label>
+            <select id="n-cat">
+              <option>Math</option><option>Science</option><option>History</option><option>English</option><option>Coding</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Qiymət (USD, 0 = pulsuz)</label>
+            <input type="number" id="n-price" placeholder="9.99" min="0" step="0.01">
+          </div>
+        </div>
+        <div class="form-group"><label>Təsvir</label><textarea id="n-desc" placeholder="Test haqqında qısa məlumat…"></textarea></div>
+      </div>
+
+      <!-- FILE UPLOAD -->
+      <div class="form-card">
+        <h3>📎 Fayl yükləmə (PDF, Şəkil, Video)</h3>
+        <p style="font-size:.8rem;color:var(--text2);margin-bottom:14px">Tələbələrə göstəriləcək materiallar əlavə edin (PDF, JPG, PNG, MP4)</p>
+        <div class="file-drop" id="file-drop" ondragover="fileDragOver(event)" ondragleave="fileDragLeave(event)" ondrop="fileDrop(event)">
+          <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.gif,.mp4,.webm" onchange="fileSelect(event)">
+          <div class="file-drop-icon">📁</div>
+          <div class="file-drop-text">Faylları buraya <span>sürükləyin</span> və ya klikləyin</div>
+          <div style="font-size:.72rem;color:var(--text3);margin-top:6px">PDF, JPG, PNG, MP4 · Maks 50MB</div>
+        </div>
+        <div class="file-list" id="file-list"></div>
+      </div>
+
+      <!-- QUESTIONS -->
+      <div class="form-card">
+        <h3>Suallar</h3>
+        <div class="qb-list" id="qb-list"></div>
+        <button class="btn btn-ghost" style="margin-top:12px" onclick="addQ()">+ Sual əlavə et</button>
+      </div>
+      <button class="btn btn-primary" onclick="saveQuiz()">✓ Dərc et</button>
+    </div>
+
+    <!-- ── MANAGE ── -->
+    <div class="apanel" id="panel-manage">
+      <div class="table-card">
+        <div class="table-head">Bütün Testlər <span id="q-count" style="font-size:.75rem;color:var(--text2);font-weight:400"></span></div>
+        <table>
+          <thead><tr><th>Başlıq</th><th>Kateqoriya</th><th>Qiymət</th><th>Fayllar</th><th>Qeydiyyat</th><th>Əməliyyat</th></tr></thead>
+          <tbody id="manage-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── STUDENTS ── -->
+    <div class="apanel" id="panel-students">
+      <div class="table-card">
+        <div class="table-head">Qeydiyyatlı Tələbələr</div>
+        <table>
+          <thead><tr><th>Ad Soyad</th><th>Email</th><th>Qoşulma</th><th>Test</th><th>Ort. Bal</th></tr></thead>
+          <tbody id="stu-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── REVENUE ── -->
+    <div class="apanel" id="panel-revenue">
+      <div class="kpi-grid" style="margin-bottom:20px">
+        <div class="kpi"><div class="kpi-n" id="rev-total">$0</div><div class="kpi-l">Ümumi gəlir</div><div class="kpi-d">bütün vaxt</div></div>
+        <div class="kpi"><div class="kpi-n" id="rev-mon">$0</div><div class="kpi-l">Bu ay</div><div class="kpi-d">↑ artır</div></div>
+        <div class="kpi"><div class="kpi-n" id="rev-tx">0</div><div class="kpi-l">Əməliyyat</div><div class="kpi-d">tamamlandı</div></div>
+      </div>
+      <div class="table-card">
+        <div class="table-head">Son Əməliyyatlar</div>
+        <table>
+          <thead><tr><th>Tələbə</th><th>Test</th><th>Məbləğ</th><th>Tarix</th><th>Status</th></tr></thead>
+          <tbody id="tx-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
+    <div class="apanel" id="panel-settings">
+      <!-- Stripe Settings -->
+      <div class="form-card">
+        <h3>💳 Stripe Ödəniş Sistemi</h3>
+        <div class="stripe-setup">
+          <h4>Quraşdırma təlimatı</h4>
+          <p>
+            1. <a href="https://dashboard.stripe.com/register" target="_blank" style="color:var(--blue)">stripe.com</a>-da hesab açın<br>
+            2. Dashboard → Developers → API Keys bölməsinə keçin<br>
+            3. <b>Secret key</b>-i kopyalayın (sk_live_... və ya sk_test_...)<br>
+            4. Netlify Dashboard → Site settings → Environment variables → <code>STRIPE_SECRET_KEY</code> kimi əlavə edin<br>
+            5. Saytı yenidən deploy edin
+          </p>
+          <div class="stripe-key-status" id="stripe-status">
+            <div class="dot" id="stripe-dot"></div>
+            <span id="stripe-status-text">Backend funksiyası vasitəsilə yoxlanılır…</span>
+          </div>
+        </div>
+        <p style="font-size:.78rem;color:var(--text2)">
+          Qeyd: Təhlükəsizlik üçün Stripe açarı bu admin paneldən deyil, birbaşa <b>Netlify-da environment variable</b> kimi saxlanılır. Açar heç vaxt brauzerə göndərilmir.
+        </p>
+      </div>
+
+      <!-- General Settings -->
+      <div class="form-card">
+        <h3>⚙️ Ümumi Parametrlər</h3>
+        <div class="settings-grid">
+          <div class="setting-item">
+            <h4>Pulsuz testlər</h4>
+            <p>Qeydiyyatsız istifadəçilər pulsuz testlərə girə bilsin</p>
+            <div class="toggle on" id="tog-free" onclick="toggleSetting('free',this)">
+              <div class="toggle-track"><div class="toggle-thumb"></div></div>
+              <span class="toggle-lbl">Aktiv</span>
+            </div>
+          </div>
+          <div class="setting-item">
+            <h4>İzahat göstər</h4>
+            <p>Cavabdan sonra açıqlama paneli</p>
+            <div class="toggle on" id="tog-exp" onclick="toggleSetting('exp',this)">
+              <div class="toggle-track"><div class="toggle-thumb"></div></div>
+              <span class="toggle-lbl">Aktiv</span>
+            </div>
+          </div>
+          <div class="setting-item">
+            <h4>Vaxt sayacı</h4>
+            <p>Test üçün geri sayım aktivləşdir</p>
+            <div class="toggle" id="tog-timer" onclick="toggleSetting('timer',this)">
+              <div class="toggle-track"><div class="toggle-thumb"></div></div>
+              <span class="toggle-lbl">Deaktiv</span>
+            </div>
+          </div>
+          <div class="setting-item">
+            <h4>Sertifikat</h4>
+            <p>80%+ nəticədə sertifikat ver</p>
+            <div class="toggle on" id="tog-cert" onclick="toggleSetting('cert',this)">
+              <div class="toggle-track"><div class="toggle-thumb"></div></div>
+              <span class="toggle-lbl">Aktiv</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Platform adı</label>
+          <input type="text" id="set-name" placeholder="QuizMaster Pro">
+        </div>
+        <div class="form-group">
+          <label>Uğur faizi (sertifikat üçün)</label>
+          <input type="number" id="set-pass" placeholder="60" min="1" max="100">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="saveSettings()">Saxla</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════ MODAL: Lock ══════════════ -->
+<div class="overlay" id="lock-modal">
+  <div class="modal">
+    <h3>🔒 Premium Test</h3>
+    <p id="lock-msg">Bu test kilidlidir. Ödəniş edərək ömürlük giriş əldə edin.</p>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeM('lock-modal')">Ləğv et</button>
+      <button class="btn btn-primary" style="flex:1;justify-content:center" id="lock-pay-btn">Kilidi aç</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ TOAST ══════════════ -->
+<div id="toast"><span class="t-icon">✓</span><span id="toast-msg">Hazır!</span></div>
+
+<script>
+/* ═══════════════════════════════════════
+   STATE
+═══════════════════════════════════════ */
+const S = {
+  user: null,
+  quizzes: [],
+  currentQuiz: null,
+  qIdx: 0,
+  answers: [],
+  startTime: 0,
+  purchased: [],
+  students: [],
+  transactions: [],
+  activity: [],
+  uploadedFiles: [],   // files for current quiz being built
+  settings: { free:true, exp:true, timer:false, cert:true, passRate:60, name:'QuizMaster Pro' },
+};
+
+/* ═══════════════════════════════════════
+   SAMPLE DATA
+═══════════════════════════════════════ */
+const SAMPLES = [
+  { id:1, title:'Cəbr Əsasları', category:'Math', price:0,
+    desc:'Tənliklər, bərabərsizliklər və funksiyaların əsas anlayışları.',
+    files:[],
+    questions:[
+      {q:'2x + 4 = 12 tənliyini həll edin. x = ?', opts:['x = 3','x = 4','x = 5','x = 6'], ans:1, exp:'2x = 12 − 4 = 8, x = 4.'},
+      {q:'Hansı həqiqi ədəd deyil?', opts:['√9','√−1','π','0'], ans:1, exp:'√−1 = i, xəyali ədəddir.'},
+      {q:'3(x − 2) = 9 tənliyini həll edin', opts:['x = 1','x = 3','x = 5','x = 7'], ans:2, exp:'3x − 6 = 9 → x = 5.'},
+      {q:'y = 3x + 7 düz xəttinin meyili nədir?', opts:['7','3','1/3','−3'], ans:1, exp:'y = mx + b — burada m meyldir. m = 3.'},
+      {q:'(x²)(x³) sadələşdirin', opts:['x⁵','x⁶','2x⁵','x'], ans:0, exp:'Eyni əsas: x^(2+3) = x⁵.'},
+    ]
+  },
+  { id:2, title:'İnsan Biologiyası', category:'Science', price:4.99,
+    desc:'Hüceyrələr, orqanlar və bədən sistemləri.',
+    files:[],
+    questions:[
+      {q:'Hüceyrənin "elektrik stansiyası" nədir?', opts:['Nüvə','Ribosom','Mitoxondri','Golgi'], ans:2, exp:'Mitoxondri ATP istehsal edir.'},
+      {q:'İnsanda neçə xromosom var?', opts:['23','44','46','48'], ans:2, exp:'46 xromosom (23 cüt).'},
+      {q:'Universal donor qan qrupu hansıdır?', opts:['A','B','AB','O−'], ans:3, exp:'O− heç bir antigen daşımır.'},
+      {q:'İnsanın ən kiçik sümüyü hardadır?', opts:['Ayaq','Barmaq','Qulaq','Burun'], ans:2, exp:'Orta qulaqda olan üzəngi sümüyü.'},
+      {q:'İnsulin hansı orqan tərəfindən istehsal edilir?', opts:['Qaraciyər','Mədəaltı vəzi','Böyrək','Mədə'], ans:1, exp:'Mədəaltı vəzinin beta hüceyrələri.'},
+    ]
+  },
+  { id:3, title:'II Dünya Müharibəsi', category:'History', price:0,
+    desc:'İkinci Dünya Müharibəsinin əsas hadisələri.',
+    files:[],
+    questions:[
+      {q:'II Dünya Müharibəsi neçənci ildə başladı?', opts:['1935','1937','1939','1941'], ans:2, exp:'Almaniyanın Polşanı işğalı — 1 sentyabr 1939.'},
+      {q:'ABŞ-ı müharibəyə cəlb edən hadisə hansıdır?', opts:['D-Day','Perl-Harbour','Britaniya döyüşü','Fransanın süqutu'], ans:1, exp:'Yaponiyанın Perl-Harboru hücumu — 7 dekabr 1941.'},
+      {q:'"Overlord Əməliyyatı" nə idi?', opts:['Stalinqrad döyüşü','D-Day desantı','Berlin körpüsü','Midway döyüşü'], ans:1, exp:'D-Day — Normandiya desantı, 6 iyun 1944.'},
+      {q:'II DM zamanı Böyük Britaniyanın Baş naziri kim idi?', opts:['Attlee','Eden','Chamberlain','Churchill'], ans:3, exp:'Çörçill may 1940-dan xidmət etdi.'},
+      {q:'Müttəfiqlər tərəfindən bombalanmayan şəhər hansıdır?', opts:['Drezden','Tokyo','Berlin','Lissabon'], ans:3, exp:'Lissabon — Portuqaliya müharibə boyu neytral qaldı.'},
+    ]
+  },
+  { id:4, title:'Python Başlanğıc', category:'Coding', price:12.99,
+    desc:'Python sintaksisi, məlumat tipləri, dövrələr və funksiyalar.',
+    files:[],
+    questions:[
+      {q:'`len("salam")` nə qaytarır?', opts:['4','5','6','Xəta'], ans:1, exp:'len() simvolları sayır. "salam" = 5.'},
+      {q:'Hansı məlumat tipi dəyişkəndir (mutable)?', opts:['str','int','tuple','list'], ans:3, exp:'Listlər dəyişkəndir.'},
+      {q:'`range(5)` nə yaradır?', opts:['1-dən 5-ə','0-dan 4-ə','0-dan 5-ə','1-dən 4-ə'], ans:1, exp:'range(5) → 0,1,2,3,4'},
+      {q:'Pythonda funksiyanı necə təyin edirlər?', opts:['function f():','def f():','func f():','define f():'], ans:1, exp:'"def" açar sözü.'},
+      {q:'`print(2**3)` çıxışı nədir?', opts:['6','8','9','5'], ans:1, exp:'** qüvvət operatorudur. 2³ = 8.'},
+    ]
+  },
+];
+
+/* ═══════════════════════════════════════
+   INIT
+═══════════════════════════════════════ */
+window.addEventListener('load', () => {
+  S.quizzes = JSON.parse(localStorage.getItem('qmp_quizzes') || 'null') || [...SAMPLES];
+  S.user = JSON.parse(localStorage.getItem('qmp_user') || 'null');
+  S.activity = JSON.parse(localStorage.getItem('qmp_activity') || '[]');
+  S.purchased = JSON.parse(localStorage.getItem('qmp_purchased') || '[]');
+  S.students = JSON.parse(localStorage.getItem('qmp_students') || '[]');
+  S.transactions = JSON.parse(localStorage.getItem('qmp_tx') || '[]');
+  const savedSettings = localStorage.getItem('qmp_settings');
+  if (savedSettings) Object.assign(S.settings, JSON.parse(savedSettings));
+
+  if (S.user) updateNav();
+  renderGrid();
+  handleCheckoutReturn();
+});
+
+/* ═══════════════════════════════════════
+   STRIPE CHECKOUT RETURN HANDLER
+   Stripe Checkout-dan qayıdışı yoxlayır (?payment=success&session_id=...)
+═══════════════════════════════════════ */
+async function handleCheckoutReturn() {
+  const params = new URLSearchParams(window.location.search);
+  const status = params.get('payment');
+  const sessionId = params.get('session_id');
+  const quizParam = params.get('quiz');
+
+  if (status === 'cancelled') {
+    toast('Ödəniş ləğv edildi','⚠️');
+    window.history.replaceState({}, '', window.location.pathname);
+    return;
+  }
+
+  if (status === 'success' && sessionId) {
+    toast('Ödəniş yoxlanılır…','⏳');
+    try {
+      const res = await fetch('/api/verify-session?session_id=' + encodeURIComponent(sessionId));
+      const data = await res.json();
+      if (data.paid) {
+        const quizId = quizParam ? parseInt(quizParam, 10) : (data.quizId ? parseInt(data.quizId, 10) : null);
+        if (quizId && !S.purchased.includes(quizId)) {
+          S.purchased.push(quizId);
+          localStorage.setItem('qmp_purchased', JSON.stringify(S.purchased));
+        }
+        const tx = {
+          student: S.user ? S.user.first+' '+S.user.last : (data.email || 'Qonaq'),
+          email: data.email || '',
+          quiz: S.quizzes.find(q=>q.id===quizId)?.title || 'Test',
+          amount: '$' + ((data.amountTotal||0)/100).toFixed(2),
+          date: new Date().toLocaleDateString('az'),
+          status: 'completed'
+        };
+        S.transactions.push(tx);
+        localStorage.setItem('qmp_tx', JSON.stringify(S.transactions));
+
+        toast('Ödəniş uğurla tamamlandı! 🎉','🎉');
+        renderGrid();
+        const quiz = S.quizzes.find(q => q.id === quizId);
+        window.history.replaceState({}, '', window.location.pathname);
+        if (quiz) { startQuiz(quiz); return; }
+      } else {
+        toast('Ödəniş təsdiqlənmədi','❌');
+      }
+    } catch (e) {
+      console.error(e);
+      toast('Ödəniş yoxlanışı zamanı xəta baş verdi','❌');
+    }
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+}
+
+/* ═══════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════ */
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'dashboard') renderDash();
+  if (id === 'admin') { renderManage(); renderStudentsT(); renderRevenue(); loadSettings(); checkStripeStatus(); }
+  window.scrollTo(0,0);
+}
+
+function updateNav() {
+  const u = S.user;
+  if (!u) return;
+  document.getElementById('nb-login').style.display = 'none';
+  document.getElementById('nb-signup').style.display = 'none';
+  document.getElementById('nb-logout').style.display = '';
+  document.getElementById('nb-dash').style.display = '';
+  document.getElementById('nav-av').style.display = 'flex';
+  document.getElementById('nav-av').textContent = (u.first[0]||'U').toUpperCase();
+  if (u.role === 'admin') document.getElementById('nb-admin').style.display = '';
+}
+
+/* ═══════════════════════════════════════
+   AUTH
+═══════════════════════════════════════ */
+function swTab(t) {
+  ['login','signup'].forEach(x => {
+    document.getElementById('tab-'+x).classList.toggle('on', x===t);
+    document.getElementById('form-'+x).classList.toggle('on', x===t);
+  });
+}
+
+async function hash(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function doLogin() {
+  const email = document.getElementById('l-email').value.trim();
+  const pass = document.getElementById('l-pass').value;
+  if (!email || !pass) { toast('Bütün xanaları doldurun','⚠️'); return; }
+
+  const adminCred = JSON.parse(localStorage.getItem('qmp_admin') || 'null');
+  if (adminCred) {
+    const h = await hash(pass);
+    if (email === adminCred.email && h === adminCred.passHash) {
+      S.user = { first:adminCred.first, last:adminCred.last, email, role:'admin', joined:adminCred.joined };
+      localStorage.setItem('qmp_user', JSON.stringify(S.user));
+      updateNav(); toast('Xoş gəldiniz, Admin! 👑','👑'); show('admin'); return;
+    }
+  }
+
+  const found = S.students.find(s => s.email === email);
+  if (found) {
+    const h = await hash(pass);
+    if (h === found.passHash) {
+      S.user = { first:found.first, last:found.last, email, role:'student', joined:found.joined };
+      localStorage.setItem('qmp_user', JSON.stringify(S.user));
+      updateNav(); toast('Xoş gəldiniz, '+found.first+'!','👋'); show('dashboard'); return;
+    }
+  }
+  toast('Email və ya şifrə yanlışdır','❌');
+}
+
+async function doSignup() {
+  const first = document.getElementById('s-first').value.trim();
+  const last  = document.getElementById('s-last').value.trim();
+  const email = document.getElementById('s-email').value.trim();
+  const pass  = document.getElementById('s-pass').value;
+  const role  = document.getElementById('s-role').value;
+  if (!first||!email||!pass) { toast('Bütün xanaları doldurun','⚠️'); return; }
+  if (pass.length < 6)       { toast('Şifrə ən azı 6 simvol olmalıdır','⚠️'); return; }
+
+  const adminCred = JSON.parse(localStorage.getItem('qmp_admin') || 'null');
+
+  if (role === 'teacher') {
+    if (adminCred) { toast('Admin hesabı artıq mövcuddur','🔒'); return; }
+    const passHash = await hash(pass);
+    const cred = { first, last, email, passHash, joined: new Date().toLocaleDateString('az') };
+    localStorage.setItem('qmp_admin', JSON.stringify(cred));
+    S.user = { first, last, email, role:'admin', joined:cred.joined };
+    localStorage.setItem('qmp_user', JSON.stringify(S.user));
+    updateNav(); toast('Admin hesabı yaradıldı 👑','🎉'); show('admin'); return;
+  }
+
+  if (S.students.find(s => s.email === email)) { toast('Bu email artıq qeydiyyatdadır','⚠️'); return; }
+  const passHash = await hash(pass);
+  const u = { first, last, email, passHash, role:'student', joined:new Date().toLocaleDateString('az'), quizzesTaken:0, avgScore:0 };
+  S.students.push(u);
+  localStorage.setItem('qmp_students', JSON.stringify(S.students));
+  S.user = { first, last, email, role:'student', joined:u.joined };
+  localStorage.setItem('qmp_user', JSON.stringify(S.user));
+  updateNav(); toast('Xoş gəldiniz, '+first+'! 🎉','🎉'); show('dashboard');
+}
+
+function doLogout() {
+  S.user = null;
+  localStorage.removeItem('qmp_user');
+  ['nb-login','nb-signup'].forEach(id => document.getElementById(id).style.display = '');
+  ['nb-logout','nb-dash','nb-admin'].forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById('nav-av').style.display = 'none';
+  toast('Çıxış edildi','👋'); show('home');
+}
+
+/* ═══════════════════════════════════════
+   CATALOG
+═══════════════════════════════════════ */
+let activeFilter = 'all';
+function renderGrid(f) {
+  if (f !== undefined) activeFilter = f;
+  const grid = document.getElementById('quiz-grid');
+  let list = S.quizzes;
+  if (activeFilter === 'free') list = list.filter(q => q.price === 0);
+  else if (activeFilter !== 'all') list = list.filter(q => q.category === activeFilter);
+
+  if (!list.length) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><span class="empty-icon">🔍</span><p>Test tapılmadı.</p></div>';
+    return;
+  }
+
+  const tagMap = { Math:'tag-math', Science:'tag-sci', History:'tag-hist', English:'tag-eng', Coding:'tag-code' };
+  const catAz  = { Math:'Riyaziyyat', Science:'Elm', History:'Tarix', English:'İngilis', Coding:'Proq.' };
+  const C = 2*Math.PI*16;
+
+  grid.innerHTML = list.map(q => {
+    const prog = getProgress(q.id);
+    const off = C - (prog/100)*C;
+    const isFree = q.price === 0;
+    const unlocked = isFree || S.purchased.includes(q.id);
+    const fileCount = (q.files||[]).length;
+    return `<div class="qcard" onclick="handleClick(${q.id})">
+      <div class="qcard-top">
+        <div>
+          <span class="mc-tag ${tagMap[q.category]||'tag-math'}">${catAz[q.category]||q.category}</span>
+        </div>
+        <div class="ring">
+          <svg width="40" height="40" viewBox="0 0 40 40">
+            <circle cx="20" cy="20" r="16" fill="none" stroke="var(--border)" stroke-width="3"/>
+            <circle cx="20" cy="20" r="16" fill="none"
+              stroke="${prog>0?'var(--green)':'var(--border2)'}" stroke-width="3"
+              stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}"
+              style="transform:rotate(-90deg);transform-origin:50% 50%"/>
+          </svg>
+          <div class="ring-pct">${prog}%</div>
+        </div>
+      </div>
+      <div class="qcard-title">${q.title}</div>
+      <div class="qcard-desc">${q.desc}</div>
+      <div class="qcard-meta">
+        <span>📝 ${q.questions.length} sual</span>
+        <span>⏱ ~${q.questions.length*30}s</span>
+        ${fileCount ? `<span>📎 ${fileCount} fayl</span>` : ''}
+      </div>
+      <div class="qcard-foot">
+        <span class="price ${isFree?'free':'paid'}">${isFree?'PULSUZ':'$'+q.price.toFixed(2)}</span>
+        <button class="btn btn-sm ${unlocked?'btn-primary':'btn-ghost'}">${unlocked?'Başla →':'Kilidi aç 🔒'}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterQ(cat, el) {
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  renderGrid(cat);
+}
+
+function getProgress(id) {
+  const a = S.activity.find(x => x.id === id);
+  return a ? a.score : 0;
+}
+
+function handleClick(id) {
+  const q = S.quizzes.find(x => x.id === id);
+  if (!q) return;
+  const unlocked = q.price===0 || S.purchased.includes(id);
+  if (!unlocked) {
+    if (!S.user) { show('auth'); toast('Əvvəlcə giriş edin','🔒'); return; }
+    openPayment(q); return;
+  }
+  startQuiz(q);
+}
+
+/* ═══════════════════════════════════════
+   STRIPE CHECKOUT (HOSTED REDIRECT)
+   Bu üsulda kart məlumatları HEÇ VAXT sizin saytınızdan keçmir —
+   istifadəçi Stripe-ın özünün təhlükəsiz səhifəsinə yönləndirilir.
+═══════════════════════════════════════ */
+function openPayment(quiz) {
+  S.currentQuiz = quiz;
+  document.getElementById('pay-title-lbl').textContent = quiz.title;
+  document.getElementById('pay-price-lbl').textContent = '$'+quiz.price.toFixed(2);
+  document.getElementById('pay-total-lbl').textContent = '$'+quiz.price.toFixed(2);
+  if (S.user) document.getElementById('pay-email').value = S.user.email;
+  document.getElementById('stripe-error').style.display = 'none';
+  show('payment');
+}
+
+async function startStripeCheckout() {
+  const quiz = S.currentQuiz;
+  if (!quiz) return;
+  const email = document.getElementById('pay-email').value.trim();
+  const errDiv = document.getElementById('stripe-error');
+  errDiv.style.display = 'none';
+
+  const btn = document.getElementById('pay-btn');
+  btn.disabled = true;
+  const originalLabel = btn.innerHTML;
+  btn.innerHTML = '<div class="spinner"></div> Yönləndirilir…';
+
+  try {
+    const res = await fetch('/api/create-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: quiz.title,
+        price: quiz.price,
+        quizId: quiz.id,
+        customerEmail: email || undefined,
+      }),
+    });
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      throw new Error(data.error || 'Checkout sessiyası yaradıla bilmədi.');
+    }
+
+    // Stripe-ın hosted checkout səhifəsinə yönləndiririk
+    window.location.href = data.url;
+  } catch (e) {
+    console.error(e);
+    errDiv.textContent = '❌ ' + e.message + ' (Backend funksiyasının (Netlify Functions) işlədiyini və STRIPE_SECRET_KEY-in təyin olunduğunu yoxlayın.)';
+    errDiv.style.display = 'block';
+    btn.disabled = false;
+    btn.innerHTML = originalLabel;
+  }
+}
+
+/* ═══════════════════════════════════════
+   QUIZ PLAYER
+═══════════════════════════════════════ */
+function startQuiz(quiz) {
+  S.currentQuiz = quiz;
+  S.qIdx = 0;
+  S.answers = [];
+  S.startTime = Date.now();
+  document.getElementById('pl-title').textContent = quiz.title;
+
+  // Show files if any
+  const filesSection = document.getElementById('quiz-files-section');
+  const filesList = document.getElementById('quiz-files-list');
+  if (quiz.files && quiz.files.length) {
+    filesSection.style.display = 'block';
+    filesList.innerHTML = quiz.files.map(f => `
+      <div class="file-item">
+        <div class="file-item-l">
+          <span class="file-icon">${fileIcon(f.type)}</span>
+          <span class="file-name">${f.name}</span>
+          <span class="file-size">${formatSize(f.size)}</span>
+        </div>
+        <a href="${f.data}" download="${f.name}" class="btn btn-ghost btn-sm">⬇ Yüklə</a>
+      </div>
+    `).join('');
+  } else {
+    filesSection.style.display = 'none';
+  }
+
+  renderQ();
+  show('quiz-player');
+}
+
+function renderQ() {
+  const quiz = S.currentQuiz;
+  const q = quiz.questions[S.qIdx];
+  const total = quiz.questions.length;
+  document.getElementById('pl-num').textContent = `${S.qIdx+1} / ${total}`;
+  document.getElementById('pl-prog').style.width = `${(S.qIdx/total)*100}%`;
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('expl').style.display = 'none';
+  document.getElementById('next-btn').textContent = S.qIdx === total-1 ? '✓ Bitir' : 'İrəli →';
+
+  const keys = ['A','B','C','D'];
+  document.getElementById('opts').innerHTML = q.opts.map((o,i) =>
+    `<div class="opt" onclick="pickOpt(this,${i})" data-i="${i}">
+      <span class="opt-key">${keys[i]}</span>${o}
+    </div>`
+  ).join('');
+}
+
+function pickOpt(el, i) {
+  if (document.querySelector('.opt.ok,.opt.no')) return;
+  const q = S.currentQuiz.questions[S.qIdx];
+  document.querySelectorAll('.opt').forEach(o => o.classList.remove('sel'));
+  el.classList.add('sel');
+  const correct = i === q.ans;
+  document.querySelectorAll('.opt').forEach((o,oi) => {
+    if (oi === q.ans) o.classList.add('ok');
+    else if (oi === i && !correct) o.classList.add('no');
+  });
+  S.answers[S.qIdx] = { chosen:i, correct };
+  if (S.settings.exp) {
+    const ex = document.getElementById('expl');
+    ex.textContent = '💡 '+q.exp;
+    ex.style.display = 'block';
+  }
+}
+
+function nextQ() {
+  if (!S.answers[S.qIdx]) { toast('Cavab seçin','⚠️'); return; }
+  S.qIdx++;
+  if (S.qIdx >= S.currentQuiz.questions.length) { showResults(); return; }
+  renderQ();
+}
+
+/* ═══════════════════════════════════════
+   RESULTS
+═══════════════════════════════════════ */
+function showResults() {
+  const quiz = S.currentQuiz;
+  const correct = S.answers.filter(a=>a&&a.correct).length;
+  const total = quiz.questions.length;
+  const pct = Math.round(correct/total*100);
+  const elapsed = Math.round((Date.now()-S.startTime)/1000);
+  const C = 2*Math.PI*60;
+
+  document.getElementById('sc-pct').textContent = pct+'%';
+  document.getElementById('sc-ok').textContent = correct;
+  document.getElementById('sc-no').textContent = total-correct;
+  document.getElementById('sc-t').textContent = elapsed+'s';
+  document.getElementById('score-arc').setAttribute('stroke-dashoffset', C-(pct/100)*C);
+  document.getElementById('score-arc').setAttribute('stroke', pct>=70?'var(--green)':pct>=40?'var(--orange)':'var(--red)');
+
+  const msgs = [[90,'🏆 Əla nəticə!','Möhtəşəm! Bu materialı əla bilirsiniz.'],[70,'👍 Yaxşı iş!','Güclü nəticə. Yanlış sualları yenidən nəzərdən keçirin.'],[50,'📚 Davam edin','Doğru istiqamətdəsiniz. Bir az daha məşq edin.'],[0,'💪 Çalışın!','Hər kəs bir yerdən başlayır. Materialı oxuyub yenidən cəhd edin.']];
+  const [,title,msg] = msgs.find(([t])=>pct>=t);
+  document.getElementById('sc-title').textContent = title;
+  document.getElementById('sc-msg').textContent = msg;
+
+  const passRate = S.settings.passRate || 60;
+  const entry = { id:quiz.id, title:quiz.title, score:pct, date:new Date().toLocaleDateString('az'), pass:pct>=passRate };
+  const idx = S.activity.findIndex(a=>a.id===quiz.id);
+  if (idx>=0) S.activity[idx]=entry; else S.activity.push(entry);
+  localStorage.setItem('qmp_activity', JSON.stringify(S.activity));
+  renderGrid();
+  show('results');
+}
+
+function retryQ() { startQuiz(S.currentQuiz); }
+
+/* ═══════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════ */
+function renderDash() {
+  const u = S.user;
+  if (!u) return;
+  document.getElementById('sb-av').textContent = (u.first[0]||'U').toUpperCase();
+  document.getElementById('sb-name').textContent = u.first+' '+u.last;
+  document.getElementById('sb-email').textContent = u.email;
+  const taken = S.activity.length;
+  const avg = taken ? Math.round(S.activity.reduce((s,a)=>s+a.score,0)/taken) : 0;
+  const passRate = S.settings.passRate||60;
+  const certs = S.activity.filter(a=>a.score>=(passRate+20)).length;
+  document.getElementById('kpi-t').textContent = taken;
+  document.getElementById('kpi-a').textContent = avg+'%';
+  document.getElementById('kpi-c').textContent = certs;
+  const tbody = document.getElementById('act-body');
+  if (!S.activity.length) {
+    tbody.innerHTML = '<tr><td colspan="4"><div class="empty"><span class="empty-icon">📝</span><p>Hələ test çözülməyib.</p><button class="btn btn-primary btn-sm" onclick="show(\'catalog\')">Test seç →</button></div></td></tr>';
+  } else {
+    tbody.innerHTML = [...S.activity].reverse().map(a =>
+      `<tr><td>${a.title}</td><td style="font-family:'JetBrains Mono',monospace;color:${a.pass?'var(--green)':'var(--red)'}">${a.score}%</td><td>${a.date}</td><td><span class="badge ${a.pass?'b-pass':'b-fail'}">${a.pass?'Keçdi':'Kəsildi'}</span></td></tr>`
+    ).join('');
+  }
+}
+
+/* ═══════════════════════════════════════
+   ADMIN — FILE UPLOAD
+═══════════════════════════════════════ */
+function fileDragOver(e) { e.preventDefault(); document.getElementById('file-drop').classList.add('over'); }
+function fileDragLeave()  { document.getElementById('file-drop').classList.remove('over'); }
+function fileDrop(e)      { e.preventDefault(); fileDragLeave(); processFiles(e.dataTransfer.files); }
+function fileSelect(e)    { processFiles(e.target.files); }
+
+function processFiles(files) {
+  const allowed = ['application/pdf','image/jpeg','image/png','image/gif','video/mp4','video/webm'];
+  Array.from(files).forEach(f => {
+    if (!allowed.includes(f.type)) { toast(f.name+' — destəklənməyən format','⚠️'); return; }
+    if (f.size > 50*1024*1024) { toast(f.name+' — 50MB limitini keçir','⚠️'); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      S.uploadedFiles.push({ name:f.name, type:f.type, size:f.size, data:e.target.result });
+      renderFileList();
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+function renderFileList() {
+  const list = document.getElementById('file-list');
+  list.innerHTML = S.uploadedFiles.map((f,i) =>
+    `<div class="file-item">
+      <div class="file-item-l">
+        <span class="file-icon">${fileIcon(f.type)}</span>
+        <span class="file-name">${f.name}</span>
+        <span class="file-size">${formatSize(f.size)}</span>
+      </div>
+      <button class="del-btn" onclick="removeFile(${i})">🗑</button>
+    </div>`
+  ).join('');
+}
+
+function removeFile(i) { S.uploadedFiles.splice(i,1); renderFileList(); }
+function fileIcon(t) { if(t==='application/pdf') return '📄'; if(t.startsWith('image/')) return '🖼'; if(t.startsWith('video/')) return '🎬'; return '📁'; }
+function formatSize(b) { if(b<1024) return b+'B'; if(b<1048576) return (b/1024).toFixed(1)+'KB'; return (b/1048576).toFixed(1)+'MB'; }
+
+/* ═══════════════════════════════════════
+   ADMIN — QUESTION BUILDER
+═══════════════════════════════════════ */
+let qCount = 0;
+function addQ() {
+  qCount++;
+  const id = 'qi-'+qCount;
+  const el = document.createElement('div');
+  el.className = 'qb-item'; el.id = id;
+  el.innerHTML = `
+    <div class="qb-head"><span>Sual ${qCount}</span><button class="del-btn" onclick="document.getElementById('${id}').remove()">🗑</button></div>
+    <div class="form-group"><label>Sual mətni</label><textarea rows="2" placeholder="Sualı yazın…"></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>A variantı</label><input type="text" placeholder="A"></div>
+      <div class="form-group"><label>B variantı</label><input type="text" placeholder="B"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>C variantı</label><input type="text" placeholder="C"></div>
+      <div class="form-group"><label>D variantı</label><input type="text" placeholder="D"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Düzgün cavab</label>
+        <select><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select>
+      </div>
+      <div class="form-group"><label>İzahat (ixtiyari)</label><input type="text" placeholder="Niyə bu doğrudur?"></div>
+    </div>`;
+  document.getElementById('qb-list').appendChild(el);
+}
+
+function saveQuiz() {
+  const title = document.getElementById('n-title').value.trim();
+  const cat   = document.getElementById('n-cat').value;
+  const price = parseFloat(document.getElementById('n-price').value)||0;
+  const desc  = document.getElementById('n-desc').value.trim();
+  const items = document.querySelectorAll('#qb-list .qb-item');
+  if (!title) { toast('Test başlığını daxil edin','⚠️'); return; }
+  if (!items.length) { toast('Ən azı 1 sual əlavə edin','⚠️'); return; }
+  const questions = [];
+  let ok = true;
+  items.forEach(item => {
+    const ta = item.querySelector('textarea');
+    const ins = item.querySelectorAll('input[type=text]');
+    const sel = item.querySelector('select');
+    const q = ta.value.trim();
+    const opts = [ins[0].value.trim(),ins[1].value.trim(),ins[2].value.trim(),ins[3].value.trim()];
+    if (!q||opts.some(o=>!o)) { ok=false; return; }
+    questions.push({ q, opts, ans:parseInt(sel.value), exp:ins[4]?ins[4].value.trim():'' });
+  });
+  if (!ok) { toast('Bütün sual xanalarını doldurun','⚠️'); return; }
+
+  const newQ = { id:Date.now(), title, category:cat, price, desc, files:[...S.uploadedFiles], questions };
+  S.quizzes.push(newQ);
+  localStorage.setItem('qmp_quizzes', JSON.stringify(S.quizzes));
+  S.uploadedFiles = [];
+  renderGrid(); renderManage();
+  toast('"'+title+'" dərc edildi 🎉','🎉');
+  // Reset
+  document.getElementById('n-title').value='';
+  document.getElementById('n-price').value='';
+  document.getElementById('n-desc').value='';
+  document.getElementById('qb-list').innerHTML='';
+  document.getElementById('file-list').innerHTML='';
+  qCount=0;
+}
+
+function renderManage() {
+  const tbody = document.getElementById('manage-body');
+  const count = document.getElementById('q-count');
+  count.textContent = S.quizzes.length+' test';
+  tbody.innerHTML = S.quizzes.map(q =>
+    `<tr>
+      <td style="font-weight:600">${q.title}</td>
+      <td>${q.category}</td>
+      <td style="font-family:'JetBrains Mono',monospace">${q.price===0?'<span style="color:var(--green)">PULSUZ</span>':'$'+q.price.toFixed(2)}</td>
+      <td>${(q.files||[]).length} fayl</td>
+      <td>${S.transactions.filter(t=>t.quiz===q.title).length}</td>
+      <td style="display:flex;gap:6px">
+        <button class="btn btn-sm btn-primary" onclick="handleClick(${q.id})">Önizlə</button>
+        <button class="btn btn-sm btn-red" onclick="delQuiz(${q.id})">Sil</button>
+      </td>
+    </tr>`
+  ).join('') || '<tr><td colspan="6"><div class="empty"><span class="empty-icon">📋</span><p>Heç bir test yoxdur.</p></div></td></tr>';
+}
+
+function delQuiz(id) {
+  if (!confirm('Bu testi silmək istədiyinizə əminsiniz?')) return;
+  S.quizzes = S.quizzes.filter(q=>q.id!==id);
+  localStorage.setItem('qmp_quizzes', JSON.stringify(S.quizzes));
+  renderManage(); renderGrid();
+  toast('Test silindi','🗑');
+}
+
+function renderStudentsT() {
+  const tbody = document.getElementById('stu-body');
+  const list = S.students.length ? S.students : [];
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="5"><div class="empty"><span class="empty-icon">👥</span><p>Hələ qeydiyyatlı tələbə yoxdur.</p></div></td></tr>'; return;
+  }
+  tbody.innerHTML = list.map(s =>
+    `<tr><td>${s.first} ${s.last}</td><td>${s.email}</td><td>${s.joined||'—'}</td><td>${s.quizzesTaken||0}</td><td>${s.avgScore||0}%</td></tr>`
+  ).join('');
+}
+
+function renderRevenue() {
+  const total = S.transactions.reduce((s,t)=>s+parseFloat(t.amount.replace('$','')),0);
+  document.getElementById('rev-total').textContent = '$'+total.toFixed(2);
+  document.getElementById('rev-mon').textContent = '$'+total.toFixed(2);
+  document.getElementById('rev-tx').textContent = S.transactions.length;
+  const tbody = document.getElementById('tx-body');
+  tbody.innerHTML = S.transactions.length
+    ? [...S.transactions].reverse().map(t =>
+        `<tr><td>${t.student}</td><td>${t.quiz}</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">${t.amount}</td><td>${t.date}</td><td><span class="badge b-paid">Ödənildi</span></td></tr>`
+      ).join('')
+    : '<tr><td colspan="5"><div class="empty"><span class="empty-icon">💰</span><p>Hələ əməliyyat yoxdur.</p></div></td></tr>';
+}
+
+/* ═══════════════════════════════════════
+   ADMIN — SETTINGS
+═══════════════════════════════════════ */
+function aTab(tab, el) {
+  document.querySelectorAll('.atab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.apanel').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('panel-'+tab).classList.add('on');
+}
+
+// Backend funksiyasının işlək olub-olmadığını yoxlayır (açar görünmür, sadəcə status)
+async function checkStripeStatus() {
+  const dot = document.getElementById('stripe-dot');
+  const txt = document.getElementById('stripe-status-text');
+  const box = document.getElementById('stripe-status');
+  try {
+    // Çox kiçik test sorğusu göndəririk — server STRIPE_SECRET_KEY yoxdursa 500 qaytaracaq
+    const res = await fetch('/api/create-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: '__healthcheck__', price: 0.01, quizId: 0 }),
+    });
+    const data = await res.json();
+    if (res.ok && data.url) {
+      dot.classList.add('ok'); box.classList.add('ok');
+      txt.textContent = 'Stripe backend funksiyası işləyir — real ödənişlər aktivdir ✓';
+    } else if (data.error && data.error.includes('STRIPE_SECRET_KEY')) {
+      dot.classList.remove('ok'); box.classList.remove('ok');
+      txt.textContent = 'STRIPE_SECRET_KEY təyin edilməyib — Netlify Environment Variables-a əlavə edin';
+    } else {
+      dot.classList.remove('ok'); box.classList.remove('ok');
+      txt.textContent = 'Status naməlum: ' + (data.error || 'yoxlanıla bilmədi');
+    }
+  } catch (e) {
+    dot.classList.remove('ok'); box.classList.remove('ok');
+    txt.textContent = 'Backend funksiyasına qoşulmaq mümkün olmadı (yalnız Netlify-da deploy edildikdə işləyir)';
+  }
+}
+
+function toggleSetting(key, el) {
+  el.classList.toggle('on');
+  const isOn = el.classList.contains('on');
+  el.querySelector('.toggle-lbl').textContent = isOn ? 'Aktiv' : 'Deaktiv';
+  S.settings[key] = isOn;
+  localStorage.setItem('qmp_settings', JSON.stringify(S.settings));
+}
+
+function loadSettings() {
+  document.getElementById('set-name').value = S.settings.name || 'QuizMaster Pro';
+  document.getElementById('set-pass').value = S.settings.passRate || 60;
+  const togs = { free:'tog-free', exp:'tog-exp', timer:'tog-timer', cert:'tog-cert' };
+  Object.entries(togs).forEach(([k,id]) => {
+    const el = document.getElementById(id);
+    if (S.settings[k]) el.classList.add('on'); else el.classList.remove('on');
+    el.querySelector('.toggle-lbl').textContent = S.settings[k] ? 'Aktiv' : 'Deaktiv';
+  });
+}
+
+function saveSettings() {
+  S.settings.name = document.getElementById('set-name').value.trim() || 'QuizMaster Pro';
+  S.settings.passRate = parseInt(document.getElementById('set-pass').value) || 60;
+  localStorage.setItem('qmp_settings', JSON.stringify(S.settings));
+  toast('Parametrlər saxlanıldı ✓','✅');
+}
+
+/* ═══════════════════════════════════════
+   MODAL
+═══════════════════════════════════════ */
+function openM(id) { document.getElementById(id).classList.add('on'); }
+function closeM(id){ document.getElementById(id).classList.remove('on'); }
+document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('on'); }));
+
+/* ═══════════════════════════════════════
+   TOAST
+═══════════════════════════════════════ */
+function toast(msg, icon='✓') {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.querySelector('.t-icon').textContent = icon;
+  t.classList.add('on');
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>t.classList.remove('on'), 3500);
+}
+</script>
+</body>
+</html>
